@@ -72,7 +72,7 @@ public class Main extends SimpleApplication {
 
         main.setSettings(appSettings);
         // main.setPauseOnLostFocus(false);
-        main.setShowSettings(false);
+        main.setShowSettings(true);
         main.setDisplayStatView(true);
         main.setDisplayFps(true);
         main.start();
