@@ -49,7 +49,7 @@ public class Main extends SimpleApplication {
         Main main = new Main();
 
         AppSettings appSettings = new AppSettings(true);
-        appSettings.setTitle("Animalia - jMonkeyEngine");
+        appSettings.setTitle("Modifiable IsoSurface - jMonkeyEngine");
         appSettings.setSettingsDialogImage("/Interface/splash.png");
         appSettings.setResolution(1280, 720);
         // appSettings.setResolution(1680, 1050);
