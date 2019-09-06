@@ -81,7 +81,7 @@ public class DensityBrush {
         affectedAreas
                 .entrySet()
                 .stream()
-                .filter(entry -> entry.getKey().y > 2.0f)
+                .filter(entry -> entry.getKey().y > 1.0f)
                 .forEach(entry -> {
 
                     Vector3f worldLoc = entry.getKey();
@@ -178,7 +178,7 @@ public class DensityBrush {
 
         affectedChunks.forEach(Chunk::rebuild);
 
-        log.info(String.format("%d points affected %d chunks", affectedAreas.size(), affectedChunks.size()));
+        log.info(String.format("%d points affected %d cells", affectedAreas.size(), affectedChunks.size()));
     }
 
 }
