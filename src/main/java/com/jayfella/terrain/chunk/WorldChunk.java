@@ -3,7 +3,7 @@ package com.jayfella.terrain.chunk;
 import com.jayfella.terrain.Main;
 import com.jayfella.terrain.config.StoragePaths;
 import com.jayfella.terrain.iso.MeshGenerator;
-import com.jayfella.terrain.iso.mc.MarchingCubesMeshGenerator;
+import com.jayfella.terrain.iso.mc.MarchingCubesMeshGenerator2;
 import com.jayfella.terrain.iso.volume.ArrayDensityVolume;
 import com.jayfella.terrain.material.WorldMaterial;
 import com.jayfella.terrain.util.GeometryUtils;
@@ -140,7 +140,7 @@ public class WorldChunk implements Chunk, Callable<Chunk> {
             save();
         }
 
-        MeshGenerator meshGenerator = new MarchingCubesMeshGenerator(Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, 1);
+        MeshGenerator meshGenerator = new MarchingCubesMeshGenerator2(Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, 1);
         // MeshGenerator meshGenerator = new SurfaceNetsMeshGenerator(Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, Chunk.SIZE_XYZ, 1);
         Vector3f chunkDensityVolumeSize = meshGenerator.getRequiredVolumeSize();
 
@@ -167,7 +167,7 @@ public class WorldChunk implements Chunk, Callable<Chunk> {
             load(chunkDensityVolumeSize);
         }
 
-        Mesh mesh = meshGenerator.buildMesh(this.densityVolume);
+        Mesh mesh = meshGenerator.buildMesh(this.densityVolume, this.voxelVolume);
 
         if (mesh != null) {
 
@@ -177,16 +177,16 @@ public class WorldChunk implements Chunk, Callable<Chunk> {
             // rather than meddle with the mesh generator and add the voxel data there, we'll keep that class
             // clean and just add the data here.
 
-            Vector3f[] vertices = BufferUtils.getVector3Array(mesh.getFloatBuffer(VertexBuffer.Type.Position));
-            Vector2f[] voxelData = new Vector2f[vertices.length];
+            //Vector3f[] vertices = BufferUtils.getVector3Array(mesh.getFloatBuffer(VertexBuffer.Type.Position));
+            //Vector2f[] voxelData = new Vector2f[vertices.length];
 
-            for (int i = 0; i < vertices.length; i++) {
+            //for (int i = 0; i < vertices.length; i++) {
                 // voxelData[i] = new Vector2f(this.voxelVolume.getVoxelId(vertices[i]), 0);
-                voxelData[i] = new Vector2f(voxelVolume.getDensity((int)vertices[i].x, (int)vertices[i].y, (int)vertices[i].z), 0);
-            }
+                //voxelData[i] = new Vector2f(voxelVolume.getDensity((int)vertices[i].x, (int)vertices[i].y, (int)vertices[i].z), 0);
+            //}
 
-            FloatBuffer tb = BufferUtils.createFloatBuffer(voxelData);
-            mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, tb);
+            //FloatBuffer tb = BufferUtils.createFloatBuffer(voxelData);
+            //mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, tb);
 
             if (markedForRebuild.get()) {
                 world.getAppContext().getApplication().enqueue(() -> {
@@ -217,7 +217,9 @@ public class WorldChunk implements Chunk, Callable<Chunk> {
 
         long timeEnd = System.currentTimeMillis();
 
-        log.info(String.format("%s %s in %d ms", markedForRebuild.get() ? "Rebuilt" : "Built", toString(), (timeEnd - timeStart)));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s %s in %d ms", markedForRebuild.get() ? "Rebuilt" : "Built", toString(), (timeEnd - timeStart)));
+        }
 
         return this;
     }
