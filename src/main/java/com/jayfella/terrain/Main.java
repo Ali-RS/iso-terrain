@@ -12,12 +12,16 @@ import com.jayfella.terrain.world.AnimaliaWorld;
 import com.jayfella.terrain.world.World;
 import com.jayfella.terrain.world.WorldType;
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
+import com.jme3.water.WaterFilter;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.event.MouseAppState;
 import com.simsilica.lemur.style.BaseStyles;
@@ -55,7 +59,7 @@ public class Main extends SimpleApplication {
         // appSettings.setResolution(1680, 1050);
         // appSettings.setFullscreen(true);
         // appSettings.setUseJoysticks(true);
-        appSettings.setVSync(true);
+        //appSettings.setVSync(true);
 
         try {
             BufferedImage[] icons = new BufferedImage[] {
@@ -80,7 +84,8 @@ public class Main extends SimpleApplication {
     }
 
     private Main() {
-        super(new AppState[0]);
+        //super(new AppState[0]);
+        super(new StatsAppState());
 
         StoragePaths.create();
     }
@@ -101,6 +106,8 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
 
+        viewPort.setBackgroundColor(new ColorRGBA(0.5f, 0.6f, 0.7f, 1.0f));
+
         inputManager.setCursorVisible(false);
         // flyCam.setDragToRotate(true);
         // flyCam.setMoveSpeed(100);
@@ -111,7 +118,7 @@ public class Main extends SimpleApplication {
         ApplicationContext appContext = new ApplicationContext(this);
 
         // light for now...
-        AmbientLight ambientLight = new AmbientLight(ColorRGBA.White);
+        AmbientLight ambientLight = new AmbientLight(ColorRGBA.White.mult(0.5f));
         rootNode.addLight(ambientLight);
 
         DirectionalLight sun = new DirectionalLight(new Vector3f(-1, -1, -1).normalizeLocal(), ColorRGBA.White);
@@ -121,7 +128,7 @@ public class Main extends SimpleApplication {
         AnistropicFilteringAssetListener anistropicFilteringAssetListener = new AnistropicFilteringAssetListener(appContext.getAppConfig().getVideoConfig().getAnistropicFilteringLevel());
         assetManager.addAssetEventListener(anistropicFilteringAssetListener);
 
-        earth = new AnimaliaWorld(appContext, WorldType.EARTH, 1337, "My World");
+        earth = new AnimaliaWorld(appContext, WorldType.EARTH, 312312, "My World");
         rootNode.attachChild(earth.getWorldNode());
 
         // PostProcessingState postProcessingState = new PostProcessingState(appContext.getAppConfig(), sun);
@@ -145,6 +152,19 @@ public class Main extends SimpleApplication {
         TerrainEditorGui terrainEditorGui = new TerrainEditorGui(earth, interactionState);
         stateManager.attach(terrainEditorGui);
 
+
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        DirectionalLightShadowFilter shadowFilter = new DirectionalLightShadowFilter(assetManager, 4096, 2);
+        shadowFilter.setLight(sun);
+        shadowFilter.setShadowIntensity(0.4f);
+        shadowFilter.setShadowZExtend(256);
+        fpp.addFilter(shadowFilter);
+
+        WaterFilter waterFilter = new WaterFilter();
+        waterFilter.setWaterHeight(10f);
+        fpp.addFilter(waterFilter);
+
+        //viewPort.addProcessor(fpp);
     }
 
 
