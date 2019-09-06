@@ -105,10 +105,10 @@ public class MaterialManager {
     private Material createMaterial(AssetManager assetManager) {
 
         Material material = new Material(assetManager, "MatDefs/TrilinearTerrain.j3md");
-        material.setFloat("Shininess", 0);
-        material.setColor("Diffuse", ColorRGBA.White);
-        material.setColor("Ambient", ColorRGBA.White);
-        material.setBoolean("UseMaterialColors", true);
+        //material.setFloat("Shininess", 0);
+        //material.setColor("Diffuse", ColorRGBA.White);
+        //material.setColor("Ambient", ColorRGBA.White);
+        //material.setBoolean("UseMaterialColors", true);
 
         // material.setVector3("WorldOffset", world.getWorldOffset());
 
