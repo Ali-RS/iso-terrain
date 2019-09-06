@@ -33,11 +33,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.jayfella.terrain.iso.mc;
 
 import com.jayfella.terrain.iso.DensityVolume;
 import com.jayfella.terrain.iso.MeshGenerator;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer.Type;
@@ -48,14 +48,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 /**
- *  Takes a density field and generates meshes for it
- *  using the Marching Cubes algorithm.
+ * Takes a density field and generates meshes for it using the Marching Cubes
+ * algorithm.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class MarchingCubesMeshGenerator implements MeshGenerator {
+public class MarchingCubesMeshGenerator2 implements MeshGenerator {
 
     private int cx;
     private int cy;
@@ -71,22 +70,21 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
     private float xzScale = 1;
 
     /**
-     *  Creates a Marching Cubes based mesh generator that will
-     *  generate chunks of the specified size.
+     * Creates a Marching Cubes based mesh generator that will generate chunks
+     * of the specified size.
      */
-    public MarchingCubesMeshGenerator( int cx, int cy, int cz ) {
+    public MarchingCubesMeshGenerator2(int cx, int cy, int cz) {
         this(cx, cy, cz, 1);
     }
 
     /**
-     *  Creates a Marching Cubes based mesh generator that will
-     *  generate chunks of the specified size with an extra x, z
-     *  scale applied to the resulting mesh.  In other words,
-     *  even though the source data may be sampled in 64x64 cell
-     *  chunks, with an xzScale of 2 the generated geometry will be
-     *  128 x 128.
+     * Creates a Marching Cubes based mesh generator that will generate chunks
+     * of the specified size with an extra x, z scale applied to the resulting
+     * mesh. In other words, even though the source data may be sampled in 64x64
+     * cell chunks, with an xzScale of 2 the generated geometry will be 128 x
+     * 128.
      */
-    public MarchingCubesMeshGenerator( int cx, int cy, int cz, float xzScale ) {
+    public MarchingCubesMeshGenerator2(int cx, int cy, int cz, float xzScale) {
         cx++;
         cy++;
         cz++;
@@ -95,7 +93,7 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         this.cz = cz;
         this.masks = new int[cx * cy * cz];
         this.cells = new int[cx * cy * cz];
-        this.edgeVerts = new int[cx+1][cy+1][cz+1][3];
+        this.edgeVerts = new int[cx + 1][cy + 1][cz + 1][3];
         this.xzScale = xzScale;
     }
 
@@ -115,7 +113,7 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         return new Vector3f(x * xzScale, y, z * xzScale);
     }
 
-    public void setXzScale( float s ) {
+    public void setXzScale(float s) {
         this.xzScale = s;
     }
 
@@ -123,80 +121,88 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         return xzScale;
     }
 
-    private int solid( float value ) {
+    private int solid(float value) {
         return value > 0 ? 1 : 0;
     }
 
-    private Vector3f getEdgePoint( int x, int y, int z, int edge, DensityVolume volume ) {
+    private Vector3f getEdgePoint(int x, int y, int z, int edge, DensityVolume volume) {
 
         int x1 = x + MarchingCubesConstants.edgeStarts[edge][0] + 1;
         int y1 = y + MarchingCubesConstants.edgeStarts[edge][1] + 1;
         int z1 = z + MarchingCubesConstants.edgeStarts[edge][2] + 1;
         float d1 = volume.getDensity(x1, y1, z1);
+        //System.out.println("d1 = " + x1 + ", " + y1 + ", " + z1);
 
         int x2 = x + MarchingCubesConstants.edgeEnds[edge][0] + 1;
         int y2 = y + MarchingCubesConstants.edgeEnds[edge][1] + 1;
         int z2 = z + MarchingCubesConstants.edgeEnds[edge][2] + 1;
         float d2 = volume.getDensity(x2, y2, z2);
+        //System.out.println("d2 = " + x2 + ", " + y2 + ", " + z2);
 
         // If d1 is -0.2 and d2 is 0.6 then the
         // point should be 0.25 from edge start.
         float part = Math.abs(d1) / Math.abs(d2 - d1);
-        float vx = x1 + (x2-x1) * part;
-        float vy = y1 + (y2-y1) * part;
-        float vz = z1 + (z2-z1) * part;
+        float vx = x1 + (x2 - x1) * part;
+        float vy = y1 + (y2 - y1) * part;
+        float vz = z1 + (z2 - z1) * part;
         Vector3f vert = new Vector3f(vx, vy, vz);
+        //System.out.println("dv = " + vx + ", " + vy + ", " + vz);
         return vert;
     }
 
     /**
-     *  Builds a mesh from the specified volume.  The resulting mesh
-     *  will be extracted from 0 to size in all directions but requires
-     *  the volume to support queries -1 to size + 2 because it will
-     *  will internally build a border of cells.
+     * Builds a mesh from the specified volume. The resulting mesh will be
+     * extracted from 0 to size in all directions but requires the volume to
+     * support queries -1 to size + 2 because it will will internally build a
+     * border of cells.
+     *
+     * @param volume
+     * @return
      */
-    public Mesh buildMesh( DensityVolume volume, DensityVolume ids ) {
+    @Override
+    public Mesh buildMesh(DensityVolume volume, DensityVolume ids) {
 
         List<Vector3f> verts = new ArrayList<Vector3f>();
         List<Vector3f> normals = new ArrayList<Vector3f>();
+        List<Vector2f> voxels = new ArrayList<Vector2f>();
         cellIndex = 0;
         triangleCount = 0;
         vertCount = 0;
         maskIndex = 0;
 
         // Build up the edge indexes so we can share edges
-        for( int x = 0; x < cx; x++ ) {
-            for( int y = 0; y < cy; y++ ) {
-                for( int z = 0; z < cz; z++ ) {
+        for (int x = 0; x < cx; x++) {
+            for (int y = 0; y < cy; y++) {
+                for (int z = 0; z < cz; z++) {
                     int bits = 0;
                     int sx = x + 1;
                     int sy = y + 1;
                     int sz = z + 1;
 
-                    bits |= solid(volume.getDensity(sx  , sy  , sz  ));
-                    bits |= solid(volume.getDensity(sx  , sy+1, sz  )) << 1;
-                    bits |= solid(volume.getDensity(sx+1, sy+1, sz  )) << 2;
-                    bits |= solid(volume.getDensity(sx+1, sy  , sz  )) << 3;
-                    bits |= solid(volume.getDensity(sx  , sy  , sz+1)) << 4;
-                    bits |= solid(volume.getDensity(sx  , sy+1, sz+1)) << 5;
-                    bits |= solid(volume.getDensity(sx+1, sy+1, sz+1)) << 6;
-                    bits |= solid(volume.getDensity(sx+1, sy  , sz+1)) << 7;
+                    bits |= solid(volume.getDensity(sx, sy, sz));
+                    bits |= solid(volume.getDensity(sx, sy + 1, sz)) << 1;
+                    bits |= solid(volume.getDensity(sx + 1, sy + 1, sz)) << 2;
+                    bits |= solid(volume.getDensity(sx + 1, sy, sz)) << 3;
+                    bits |= solid(volume.getDensity(sx, sy, sz + 1)) << 4;
+                    bits |= solid(volume.getDensity(sx, sy + 1, sz + 1)) << 5;
+                    bits |= solid(volume.getDensity(sx + 1, sy + 1, sz + 1)) << 6;
+                    bits |= solid(volume.getDensity(sx + 1, sy, sz + 1)) << 7;
 
-                    if( MarchingCubesConstants.triEdges[bits].length > 0 ) {
+                    if (MarchingCubesConstants.triEdges[bits].length > 0) {
                         // We _do_ want to process some of the edges but
                         // we _don't_ want to process the actual cell if
                         // it is the outside border
-                        if( x < cx - 1 && y < cy - 1 && z < cz - 1 ) {
+                        if (x < cx - 1 && y < cy - 1 && z < cz - 1) {
                             cells[cellIndex++] = maskIndex;
                         }
                         int[][] triangles = MarchingCubesConstants.triEdges[bits];
                         triangleCount += triangles.length;
                         Arrays.fill(edgeHit, false);
 
-                        for( int t = 0; t < triangles.length; t++ ) {
+                        for (int t = 0; t < triangles.length; t++) {
                             int[] triEdges = triangles[t];
 
-                            for( int i = 0; i < 3; i++ ) {
+                            for (int i = 0; i < 3; i++) {
                                 edgeHit[triEdges[i]] = true;
                             }
                         }
@@ -207,29 +213,79 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
                         // but these cells are technically outside of the field and
                         // we will need to skip them later.  Also, I guess we can avoid
                         // generating some extra vertexes that would stick out.
-                        if( edgeHit[0] && y < cy - 1 ) {
+
+
+                        if (edgeHit[0] && y < cy - 1) {
                             Vector3f vert = getEdgePoint(x, y, z, 0, volume);
                             edgeVerts[x][y][z][0] = verts.size();
                             verts.add(vert);
-                            normals.add(volume.getFieldDirection(vert.x, vert.y, vert.z, null));
+
+                            Vector3f norm = volume.getFieldDirection(vert.x, vert.y, vert.z, null);
+                            Vector3f densityPos = new Vector3f(sx, sy, sz).add(norm.negate());
+                            float id = ids.getDensity(densityPos.x, densityPos.y, densityPos.z);
+
+                            voxels.add(new Vector2f(id, 0));
+                            if (id < 0) {
+                                System.out.println("*WARNING 0* no voxel id on mesh vertex: " + sx + ", " + sy + ", " + sz);
+                            }
+
+                            normals.add(norm);
+
                             vert.x--;
                             vert.y--;
                             vert.z--;
                         }
-                        if( edgeHit[3] && x < cx - 1 ) {
+                        if (edgeHit[3] && x < cx - 1) {
                             Vector3f vert = getEdgePoint(x, y, z, 3, volume);
                             edgeVerts[x][y][z][1] = verts.size();
                             verts.add(vert);
-                            normals.add(volume.getFieldDirection(vert.x, vert.y, vert.z, null));
+
+                            Vector3f norm = volume.getFieldDirection(vert.x, vert.y, vert.z, null);
+
+                            Vector3f densityPos = new Vector3f(sx, sy, sz).add(norm.negate());
+                            float id0 = ids.getDensity(densityPos.x, densityPos.y, densityPos.z);
+
+                            densityPos = new Vector3f(sx + 1, sy, sz).add(norm.negate());
+                            float id1 = ids.getDensity(densityPos.x, densityPos.y, densityPos.z);
+
+                            //float id0 = ids.getDensity(sx, sy, sz);
+                            //float id1 = ids.getDensity(sx + 1, sy, sz);
+                            float id = (id0 < 0 ? id1 : id0);
+
+
+                            voxels.add(new Vector2f(id, 0));
+                            if (id < 0) {
+                                System.out.println("*WARNING 1* no voxel id on mesh vertex: " + sx + ", " + sy + ", " + sz);
+                            }
+                            normals.add(norm);
                             vert.x--;
                             vert.y--;
                             vert.z--;
                         }
-                        if( edgeHit[8] && z < cz - 1 ) {
+                        if (edgeHit[8] && z < cz - 1) {
                             Vector3f vert = getEdgePoint(x, y, z, 8, volume);
                             edgeVerts[x][y][z][2] = verts.size();
                             verts.add(vert);
-                            normals.add(volume.getFieldDirection(vert.x, vert.y, vert.z, null));
+
+                            // float id0 = ids.getDensity(sx, sy, sz);
+                            // float id1 = ids.getDensity(sx, sy, sz + 1);
+                            // float id = (id0 < 0 ? id1 : id0);
+
+                            Vector3f norm = volume.getFieldDirection(vert.x, vert.y, vert.z, null);
+
+                            Vector3f densityPos = new Vector3f(sx, sy, sz).add(norm.negate());
+                            float id0 = ids.getDensity(densityPos.x, densityPos.y, densityPos.z);
+
+                            densityPos = new Vector3f(sx, sy, sz + 1).add(norm.negate());
+                            float id1 = ids.getDensity(densityPos.x, densityPos.y, densityPos.z);
+
+                            float id = (id0 < 0 ? id1 : id0);
+
+                            if (id < 0) {
+                                System.out.println("*WARNING 2* no voxel id on mesh vertex: " + sx + ", " + sy + ", " + sz);
+                            }
+                            voxels.add(new Vector2f(id, 0));
+                            normals.add(norm);
                             vert.x--;
                             vert.y--;
                             vert.z--;
@@ -241,11 +297,12 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         }
 
         int cellCount = cellIndex;
-        if( cellCount == 0 )
+        if (cellCount == 0) {
             return null;
+        }
 
-        if( xzScale != 1 ) {
-            for( int i = 0; i < verts.size(); i++ ) {
+        if (xzScale != 1) {
+            for (int i = 0; i < verts.size(); i++) {
                 Vector3f v = verts.get(i);
                 Vector3f n = normals.get(i);
                 v.x *= xzScale;
@@ -261,7 +318,7 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         // Now let's just visit the non-empty cells and spin out the
         // shared triangles' indexes.
         int cycz = cy * cz;
-        for( int c = 0; c < cellCount; c++ ) {
+        for (int c = 0; c < cellCount; c++) {
 
             int index = cells[c];
             int mask = masks[index];
@@ -270,54 +327,54 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
             int z = index % cz;
 
             int[][] triangles = MarchingCubesConstants.triEdges[mask];
-            if( triangles.length == 0 ) {
+            if (triangles.length == 0) {
                 throw new RuntimeException("Algorithm inconsistency detected.");
                 //System.out.println( "****** How did this happen? ******" );
                 //continue;
             }
 
-            for( int t = 0; t < triangles.length; t++ ) {
+            for (int t = 0; t < triangles.length; t++) {
 
                 int[] triEdges = triangles[t];
 
-                for( int i = 0; i < 3; i++ ) {
+                for (int i = 0; i < 3; i++) {
                     int vertIndex;
-                    switch(triEdges[i]) {
+                    switch (triEdges[i]) {
                         case 0:
                             vertIndex = edgeVerts[x][y][z][0];
                             break;
                         case 1:
-                            vertIndex = edgeVerts[x][y+1][z][1];
+                            vertIndex = edgeVerts[x][y + 1][z][1];
                             break;
                         case 2:
-                            vertIndex = edgeVerts[x+1][y][z][0];
+                            vertIndex = edgeVerts[x + 1][y][z][0];
                             break;
                         case 3:
                             vertIndex = edgeVerts[x][y][z][1];
                             break;
                         case 4:
-                            vertIndex = edgeVerts[x][y][z+1][0];
+                            vertIndex = edgeVerts[x][y][z + 1][0];
                             break;
                         case 5:
-                            vertIndex = edgeVerts[x][y+1][z+1][1];
+                            vertIndex = edgeVerts[x][y + 1][z + 1][1];
                             break;
                         case 6:
-                            vertIndex = edgeVerts[x+1][y][z+1][0];
+                            vertIndex = edgeVerts[x + 1][y][z + 1][0];
                             break;
                         case 7:
-                            vertIndex = edgeVerts[x][y][z+1][1];
+                            vertIndex = edgeVerts[x][y][z + 1][1];
                             break;
                         case 8:
                             vertIndex = edgeVerts[x][y][z][2];
                             break;
                         case 9:
-                            vertIndex = edgeVerts[x][y+1][z][2];
+                            vertIndex = edgeVerts[x][y + 1][z][2];
                             break;
                         case 10:
-                            vertIndex = edgeVerts[x+1][y+1][z][2];
+                            vertIndex = edgeVerts[x + 1][y + 1][z][2];
                             break;
                         case 11:
-                            vertIndex = edgeVerts[x+1][y][z][2];
+                            vertIndex = edgeVerts[x + 1][y][z][2];
                             break;
                         default:
                             throw new RuntimeException("Unknown edge:" + triEdges[i]);
@@ -334,7 +391,11 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
         Vector3f[] normArray = new Vector3f[normals.size()];
         normArray = normals.toArray(normArray);
 
+        Vector2f[] voxelArray = new Vector2f[voxels.size()];
+        voxelArray = voxels.toArray(voxelArray);
+
         Mesh mesh = new Mesh();
+        mesh.setBuffer(Type.TexCoord, 2, BufferUtils.createFloatBuffer(voxelArray));
 
         FloatBuffer pb = BufferUtils.createFloatBuffer(vertArray);
         mesh.setBuffer(Type.Position, 3, pb);
@@ -347,13 +408,10 @@ public class MarchingCubesMeshGenerator implements MeshGenerator {
 
         // Vector2f[] txArray = new Vector2f[verts.size()];
         // Arrays.fill(txArray, new Vector2f(0,1));
-
         // FloatBuffer tb = BufferUtils.createFloatBuffer(txArray);
         // mesh.setBuffer(Type.TexCoord, 2, tb);
-
         mesh.updateBound();
-
+        // System.out.println("Mesh verts " + vertArray.length);
         return mesh;
     }
 }
-

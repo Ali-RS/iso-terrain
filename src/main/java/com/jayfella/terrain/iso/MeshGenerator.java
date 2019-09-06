@@ -60,5 +60,5 @@ public interface MeshGenerator {
     /**
      *  Builds a mesh from the specified density volume.
      */
-    public Mesh buildMesh( DensityVolume volume );
+    public Mesh buildMesh( DensityVolume volume, DensityVolume ids );
 }
