@@ -12,7 +12,7 @@ public class VideoConfig {
     public VideoConfig() {
 
         // default settings for now...
-        this.renderDistance = 10;
+        this.renderDistance = 6;
         this.vsync = false;
         this.anistropicFilteringLevel = 16;
     }
