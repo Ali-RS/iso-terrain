@@ -54,25 +54,13 @@ public class Main extends SimpleApplication {
 
         AppSettings appSettings = new AppSettings(true);
         appSettings.setTitle("Modifiable IsoSurface - jMonkeyEngine");
-        appSettings.setSettingsDialogImage("/Interface/splash.png");
         appSettings.setResolution(1280, 720);
         // appSettings.setResolution(1680, 1050);
         // appSettings.setFullscreen(true);
         // appSettings.setUseJoysticks(true);
         //appSettings.setVSync(true);
 
-        try {
-            BufferedImage[] icons = new BufferedImage[] {
-                    ImageIO.read( Main.class.getResource( "/Interface/icons/animalia-128.png" ) ),
-                    ImageIO.read( Main.class.getResource( "/Interface/icons/animalia-64.png" ) ),
-                    ImageIO.read( Main.class.getResource( "/Interface/icons/animalia-32.png" ) ),
-                    ImageIO.read( Main.class.getResource( "/Interface/icons/animalia-16.png" ) )
-            };
-            appSettings.setIcons(icons);
-        }
-        catch( IOException e ) {
-            log.warn("Error loading icons", e);
-        }
+
 
         main.setSettings(appSettings);
         // main.setPauseOnLostFocus(false);
