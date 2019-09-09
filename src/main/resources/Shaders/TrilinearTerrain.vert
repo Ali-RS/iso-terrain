@@ -47,7 +47,7 @@ attribute vec3 inNormal;
 varying vec3 lightVec;
 //varying vec4 spotVec;
 
-varying vec2 voxelData;
+flat varying vec2 voxelData;
 
 #ifdef VERTEX_COLOR
   attribute vec4 inColor;

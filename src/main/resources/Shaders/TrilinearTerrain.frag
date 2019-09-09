@@ -28,7 +28,7 @@ uniform float m_LowResDistance;
 uniform sampler2DArray m_DiffuseArray;
 uniform sampler2DArray m_NormalArray;
 
-varying vec2 voxelData;
+flat varying vec2 voxelData;
 
 varying vec3 texCoord;
 #ifdef SEPARATE_TEXCOORD
@@ -166,7 +166,7 @@ vec2 computeLighting(in vec3 wvNorm, in vec3 wvViewDir, in vec3 wvLightDir){
 }
 #endif
 
-vec4 getColor(in int voxelId, in vec2 tc, out vec3 normal) {
+vec4 getColor(in float voxelId, in vec2 tc, out vec3 normal) {
 
     vec4 diffuseColor = texture2DArray(m_DiffuseArray, vec3(tc, voxelId));
     vec4 normalHeight = texture2DArray(m_NormalArray, vec3(tc, voxelId));
@@ -178,7 +178,7 @@ vec4 getColor(in int voxelId, in vec2 tc, out vec3 normal) {
 
 void main(){
 
-    int voxelId = int(voxelData.x);
+    float voxelId = voxelData.x;
 
     // vec2 newTexCoord;
     float alpha = 1.0;
